@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using TaskFlow.Entities.Users;
-using TaskFlow.Repo.Users.Interfaces;
 
-namespace TaskFlow.Repo.Users.Implementations;
+namespace TaskFlow.Repo.UserRepo;
 
 public class UserRepository : IUserRepository
 {
@@ -18,6 +17,11 @@ public class UserRepository : IUserRepository
         return _userManager.FindByEmailAsync(email);
     }
 
+    public Task<ApplicationUser?> FindByIdAsync(string userId)
+    {
+        return _userManager.FindByIdAsync(userId);
+    }
+
     public Task<IdentityResult> CreateAsync(
         ApplicationUser user,
         string password)
@@ -25,15 +29,33 @@ public class UserRepository : IUserRepository
         return _userManager.CreateAsync(user, password);
     }
 
-    public async Task<bool> CheckPasswordAsync(
+    public Task<bool> CheckPasswordAsync(
         ApplicationUser user,
         string password)
     {
-        return await _userManager.CheckPasswordAsync(user, password);
+        return _userManager.CheckPasswordAsync(user, password);
     }
 
     public Task<IList<string>> GetRolesAsync(ApplicationUser user)
     {
         return _userManager.GetRolesAsync(user);
+    }
+
+    public Task<bool> IsEmailConfirmedAsync(ApplicationUser user)
+    {
+        return _userManager.IsEmailConfirmedAsync(user);
+    }
+
+    public Task<string> GenerateEmailConfirmationTokenAsync(
+        ApplicationUser user)
+    {
+        return _userManager.GenerateEmailConfirmationTokenAsync(user);
+    }
+
+    public Task<IdentityResult> ConfirmEmailAsync(
+        ApplicationUser user,
+        string token)
+    {
+        return _userManager.ConfirmEmailAsync(user, token);
     }
 }

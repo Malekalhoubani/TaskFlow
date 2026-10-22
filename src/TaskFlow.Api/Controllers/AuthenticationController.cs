@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskFlow.Service.Authentication.Interfaces;
+using TaskFlow.Service.Authentication;
 using TaskFlow.Service.Authentication.Models;
 
 namespace TaskFlow.Api.Controllers;
@@ -38,6 +38,29 @@ public class AuthenticationController : ControllerBase
         return result.Succeeded
             ? Ok(result)
             : Unauthorized(result);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail(
+        [FromQuery] ConfirmEmailRequest request)
+    {
+        var result = await _authenticationService.ConfirmEmailAsync(request);
+
+        return result.Succeeded
+            ? Ok(result)
+            : BadRequest(result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("resend-confirmation")]
+    public async Task<IActionResult> ResendEmailConfirmation(
+        ResendEmailConfirmationRequest request)
+    {
+        var result = await _authenticationService
+            .ResendEmailConfirmationAsync(request);
+
+        return Ok(result);
     }
 
     [Authorize]
