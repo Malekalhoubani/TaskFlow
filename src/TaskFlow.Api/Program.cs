@@ -6,9 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TaskFlow.Entities.Users;
 using TaskFlow.Repo.Data;
-using TaskFlow.Repo.Users.Implementations;
-using TaskFlow.Service.Authentication.Implementations;
+using TaskFlow.Repo.UserRepo;
+using TaskFlow.Service.Authentication;
 using TaskFlow.Service.Authentication.Options;
+using TaskFlow.Service.Email.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,34 @@ builder.Services.AddOptions<JwtSettings>()
         "JWT expiration must be greater than zero.")
     .ValidateOnStart();
 
+var emailSection = builder.Configuration.GetSection(
+    EmailSettings.SectionName);
+
+builder.Services.AddOptions<EmailSettings>()
+    .Bind(emailSection)
+    .Validate(
+        settings => !string.IsNullOrWhiteSpace(settings.Host),
+        "Email host is required.")
+    .Validate(
+        settings => settings.Port > 0,
+        "Email port must be greater than zero.")
+    .Validate(
+        settings => !string.IsNullOrWhiteSpace(settings.SenderEmail),
+        "Sender email is required.")
+    .Validate(
+        settings => !string.IsNullOrWhiteSpace(settings.Username),
+        "Email username is required.")
+    .Validate(
+        settings => !string.IsNullOrWhiteSpace(settings.Password),
+        "Email password is required.")
+    .Validate(
+        settings => Uri.TryCreate(
+            settings.ConfirmationUrl,
+            UriKind.Absolute,
+            out _),
+        "A valid email confirmation URL is required.")
+    .ValidateOnStart();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -61,8 +90,11 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 
-    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedEmail = true;
 });
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(2));
 
 builder.Services
     .AddAuthentication(options =>

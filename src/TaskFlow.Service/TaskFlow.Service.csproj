@@ -1,6 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Remove="Email\Implementations\**" />
+    <EmbeddedResource Remove="Email\Implementations\**" />
+    <None Remove="Email\Implementations\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.18.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.11" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.11" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
@@ -9,6 +16,10 @@
   <ItemGroup>
     <ProjectReference Include="..\TaskFlow.Entities\TaskFlow.Entities.csproj" />
     <ProjectReference Include="..\TaskFlow.Repo\TaskFlow.Repo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Authentication\" />
   </ItemGroup>
 
   <PropertyGroup>
