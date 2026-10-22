@@ -1,0 +1,12 @@
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+node_modules/
+dist/
+.angular/
+appsettings.*.local.json
+*.db
+*.db-shm
+*.db-wal
