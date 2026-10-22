@@ -2,10 +2,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.11" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TaskFlow.Entities\TaskFlow.Entities.csproj" />
+    <ProjectReference Include="..\TaskFlow.Repo\TaskFlow.Repo.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
