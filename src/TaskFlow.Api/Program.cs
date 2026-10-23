@@ -10,6 +10,9 @@ using TaskFlow.Repo.UserRepo;
 using TaskFlow.Service.Authentication;
 using TaskFlow.Service.Authentication.Options;
 using TaskFlow.Service.Email.Options;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using TaskFlow.Service.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +44,11 @@ builder.Services.AddOptions<JwtSettings>()
     .Validate(
         settings => settings.ExpirationMinutes > 0,
         "JWT expiration must be greater than zero.")
+    .Validate(
+    settings => settings.RefreshTokenExpirationDays > 0,
+    "Refresh token expiration must be greater than zero.")
     .ValidateOnStart();
+
 
 var emailSection = builder.Configuration.GetSection(
     EmailSettings.SectionName);
@@ -106,7 +113,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(2));
 
-builder.Services
+var authenticationBuilder = builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme =
@@ -132,7 +139,60 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+var googleClientId = builder.Configuration["ExternalAuthentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["ExternalAuthentication:Google:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    authenticationBuilder.AddGoogle("Google", options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+    });
+}
+
+var microsoftClientId = builder.Configuration["ExternalAuthentication:Microsoft:ClientId"];
+var microsoftClientSecret = builder.Configuration["ExternalAuthentication:Microsoft:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(microsoftClientId) && !string.IsNullOrWhiteSpace(microsoftClientSecret))
+{
+    authenticationBuilder.AddMicrosoftAccount("Microsoft", options =>
+    {
+        options.ClientId = microsoftClientId;
+        options.ClientSecret = microsoftClientSecret;
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+    });
+}
+
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in Permissions.All)
+        options.AddPolicy(permission, policy => policy.RequireClaim(Permissions.ClaimType, permission));
+});
+builder.Services.AddCors(options => options.AddPolicy("Angular", policy => policy
+    .WithOrigins("http://localhost:4200", "https://localhost:4200")
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()));
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+    options.AddPolicy("authenticated", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 120,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+});
 builder.Services.AddControllers();
 
 builder.Services.Scan(scan => scan
@@ -157,6 +217,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Angular");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

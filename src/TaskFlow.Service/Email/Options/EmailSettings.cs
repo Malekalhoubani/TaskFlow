@@ -20,4 +20,5 @@ public class EmailSettings
 
     public string ConfirmationUrl { get; set; } = string.Empty;
     public string ResetPasswordUrl { get; set; } = string.Empty;
+    public string ChangeEmailUrl { get; set; } = string.Empty;
 }

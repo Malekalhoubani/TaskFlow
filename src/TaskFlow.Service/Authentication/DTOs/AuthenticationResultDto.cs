@@ -1,3 +1,6 @@
+using Azure;
+using System.Text.Json.Serialization;
+
 namespace TaskFlow.Service.Authentication.DTOs;
 
 public class AuthenticationResultDto
@@ -19,4 +22,12 @@ public class AuthenticationResultDto
     public string? Email { get; set; }
 
     public IEnumerable<string> Roles { get; set; } = [];
+
+    public bool RequiresTwoFactor { get; set; }
+
+    // prevents the refresh token from appearing in the JSON response
+    [JsonIgnore]
+    public string? RefreshToken { get; set; }
+
+    public DateTime? RefreshTokenExpiresAtUtc { get; set; }
 }

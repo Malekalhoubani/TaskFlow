@@ -1,0 +1,8 @@
+<header><div><p class="eyebrow">Account</p><h1>Your profile</h1></div><span class="status">● Protected</span></header>
+<div class="settings-grid">
+  <form class="panel" [formGroup]="profileForm" (ngSubmit)="saveProfile()"><h2>Personal details</h2><label>Full name<input formControlName="fullName"></label><button class="primary">Save profile</button></form>
+  <form class="panel" [formGroup]="emailForm" (ngSubmit)="changeEmail()"><h2>Change email</h2><label>New email<input type="email" formControlName="newEmail"></label><label>Current password<input type="password" formControlName="currentPassword"></label><button class="primary">Send confirmation</button></form>
+  <form class="panel" [formGroup]="passwordForm" (ngSubmit)="changePassword()"><h2>Change password</h2><label>Current password<input type="password" formControlName="currentPassword"></label><div class="split"><label>New password<input type="password" formControlName="newPassword"></label><label>Confirm<input type="password" formControlName="confirmPassword"></label></div><button class="primary">Update password</button></form>
+</div>
+@if (notice()) { <p class="toast notice">{{ notice() }}</p> }
+@if (error()) { <p class="toast error">{{ error() }}</p> }

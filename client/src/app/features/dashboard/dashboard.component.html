@@ -1,0 +1,25 @@
+<header>
+  <div>
+    <p class="eyebrow">TaskFlow workspace</p>
+    <h1>Good evening, {{ auth.profile()?.fullName?.split(" ")?.[0] || "there" }}</h1>
+  </div><span class="status">● All systems secure</span>
+</header>
+<div class="metric-grid">
+  <article><span>Active projects</span><strong>08</strong><small>↑ 12% this month</small></article>
+  <article><span>Tasks in motion</span><strong>24</strong><small>6 need attention</small></article>
+  <article class="accent"><span>Completion rate</span><strong>84%</strong><small>Best month yet</small></article>
+</div>
+<article class="panel">
+  <header>
+    <div>
+      <p class="eyebrow">Today</p>
+      <h2>Priority work</h2>
+    </div><button class="soft">View board →</button>
+  </header>
+  <div class="work-row"><i class="coral"></i>
+    <div><b>Finalize authentication flow</b><small>Security · Due today</small></div><span>In progress</span>
+  </div>
+  <div class="work-row"><i class="green"></i>
+    <div><b>Review dashboard experience</b><small>Design · Tomorrow</small></div><span>Ready</span>
+  </div>
+</article>

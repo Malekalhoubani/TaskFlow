@@ -9,6 +9,6 @@ public class JwtSettings
     public string Audience { get; set; } = string.Empty;
 
     public string Secret { get; set; } = string.Empty;
-
+    public int RefreshTokenExpirationDays { get; set; } = 30;
     public int ExpirationMinutes { get; set; } = 60;
 }

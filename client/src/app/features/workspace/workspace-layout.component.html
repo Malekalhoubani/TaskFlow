@@ -1,0 +1,11 @@
+<main class="workspace">
+  <aside>
+    <a class="brand" routerLink="/dashboard"><span class="brand-mark">T</span> TaskFlow</a>
+    <div class="user"><div class="avatar large">{{ auth.profile()?.fullName?.slice(0, 2)?.toUpperCase() || "TF" }}</div><div><b>{{ auth.profile()?.fullName }}</b><small>{{ auth.profile()?.email }}</small></div></div>
+    <a routerLink="/dashboard" routerLinkActive="active">⌁ Overview</a>
+    <a routerLink="/profile" routerLinkActive="active">○ Profile</a>
+    <a routerLink="/security" routerLinkActive="active">◇ Security center</a>
+    <button class="signout" (click)="signOut()">↗ Sign out</button>
+  </aside>
+  <div class="content"><router-outlet /></div>
+</main>

@@ -1,0 +1,28 @@
+<main>
+  <nav><a class="brand" routerLink="/"><span class="brand-mark">T</span> TaskFlow</a><span class="secure-pill">● Secure
+      by default</span></nav>
+  <section class="auth-shell">
+    <div class="story">
+      <p class="eyebrow">Start building</p>
+      <h1>Your best work<br><em>starts here.</em></h1>
+      <p class="intro">Create one secure workspace for your projects, team, reports, and daily progress.</p>
+    </div>
+    <div class="auth-card">
+      <div class="tabs"><a routerLink="/login">Sign in</a><button class="active">Create account</button></div>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div>
+          <p class="eyebrow">Join TaskFlow</p>
+          <h2>Create your workspace</h2>
+          <p class="muted">Free to start. Secure by default.</p>
+        </div>
+        <label>Full name<input formControlName="fullName" placeholder="Your full name"></label>
+        <label>Email address<input type="email" formControlName="email" placeholder="you@company.com"></label>
+        <div class="split"><label>Password<input type="password" formControlName="password"></label><label>Confirm<input
+              type="password" formControlName="confirmPassword"></label></div>
+        <button class="primary" type="submit" [disabled]="busy()">{{ busy() ? "Creating…" : "Create account" }}</button>
+      </form>
+      @if (notice()) { <p class="notice">{{ notice() }} <a routerLink="/login">Sign in</a></p> }
+      @if (error()) { <p class="error">{{ error() }}</p> }
+    </div>
+  </section>
+</main>

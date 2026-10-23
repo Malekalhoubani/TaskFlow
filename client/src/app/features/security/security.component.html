@@ -1,0 +1,20 @@
+<header><div><p class="eyebrow">Account protection</p><h1>Security center</h1></div><span class="status">● All systems secure</span></header>
+<div class="settings-grid">
+  <article class="panel">
+    <p class="eyebrow">Authenticator</p><h2>Two-factor authentication</h2><p class="muted">Protect your account with a rotating six-digit code.</p>
+    <button class="primary" (click)="setupTwoFactor()">Set up authenticator</button>
+    @if (setupKey()) {
+      <div class="secret"><small>Manual setup key</small><code>{{ setupKey() }}</code></div>
+      <form [formGroup]="twoFactorForm" (ngSubmit)="enableTwoFactor()"><label>Verification code<input formControlName="code" placeholder="000000"></label><button class="primary">Verify & enable</button></form>
+    }
+    @if (recoveryCodes().length) { <div class="codes">@for (code of recoveryCodes(); track code) { <code>{{ code }}</code> }</div> }
+  </article>
+  <article class="panel danger"><p class="eyebrow">Sessions</p><h2>Sign out everywhere</h2><p class="muted">Revoke every active refresh token across all browsers and devices.</p><button (click)="signOutEverywhere()">Sign out all devices</button></article>
+</div>
+<article class="panel history">
+  <header><div><p class="eyebrow">Audit trail</p><h2>Recent sign-ins</h2></div></header>
+  @for (item of history(); track item.createdAtUtc) { <div class="activity"><i [class.ok]="item.succeeded"></i><div><b>{{ item.succeeded ? "Successful sign-in" : "Blocked attempt" }}</b><small>{{ item.ipAddress || "Unknown IP" }} · {{ item.createdAtUtc | date:"medium" }}</small></div><span>{{ item.succeeded ? "Verified" : item.failureReason }}</span></div> }
+  @empty { <p class="muted">Your security activity will appear here.</p> }
+</article>
+@if (notice()) { <p class="toast notice">{{ notice() }}</p> }
+@if (error()) { <p class="toast error">{{ error() }}</p> }

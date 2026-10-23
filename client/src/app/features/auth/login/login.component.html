@@ -1,0 +1,38 @@
+<main>
+  <nav><a class="brand" routerLink="/"><span class="brand-mark">T</span> TaskFlow</a><span class="secure-pill">●
+      Enterprise-grade security</span></nav>
+  <section class="auth-shell">
+    <div class="story">
+      <p class="eyebrow">Work, without the noise</p>
+      <h1>Move every idea<br><em>into motion.</em></h1>
+      <p class="intro">A focused workspace for ambitious teams—projects, decisions, progress, and security in one
+        beautifully calm place.</p>
+      <div class="mini-board">
+        <header><span>Website launch</span><small>72%</small></header>
+        <div class="progress"><i></i></div>
+        <div class="task"><b>Design review</b><span class="avatar">MA</span></div>
+        <div class="task"><b>API integration</b><span class="tag">IN PROGRESS</span></div>
+      </div>
+    </div>
+    <div class="auth-card">
+      <div class="tabs"><button class="active">Sign in</button><a routerLink="/register">Create account</a></div>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div>
+          <p class="eyebrow">Welcome back</p>
+          <h2>Continue to TaskFlow</h2>
+          <p class="muted">Your workspace is ready when you are.</p>
+        </div>
+        <label>Email address<input type="email" formControlName="email" placeholder="you@company.com"></label>
+        <label>Password<input type="password" formControlName="password" placeholder="At least 8 characters"></label>
+        <label>Authenticator code <small>Only when 2FA is enabled</small><input formControlName="twoFactorCode"
+            inputmode="numeric" placeholder="000 000"></label>
+        <button class="primary" type="submit" [disabled]="busy()">{{ busy() ? "Signing in…" : "Sign in securely"
+          }}</button>
+      </form>
+      <div class="divider"><span>or continue with</span></div>
+      <div class="providers"><button (click)="auth.external('Google')">G&nbsp; Google</button><button
+          (click)="auth.external('Microsoft')">▦&nbsp; Microsoft</button></div>
+      @if (error()) { <p class="error">{{ error() }}</p> }
+    </div>
+  </section>
+</main>
