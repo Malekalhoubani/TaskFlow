@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TaskFlow.Entities.Users;
 using TaskFlow.Repo.UserRepo;
-using TaskFlow.Service.Authentication.Models;
+using TaskFlow.Service.Authentication.DTOs;
 using TaskFlow.Service.Authentication.Options;
 using TaskFlow.Service.Email;
 using TaskFlow.Service.Email.Options;
@@ -32,8 +32,8 @@ public class AuthenticationService : IAuthenticationService
         _emailSettings = emailOptions.Value;
     }
 
-    public async Task<AuthenticationResult> RegisterAsync(
-        RegisterRequest request)
+    public async Task<AuthenticationResultDto> RegisterAsync(
+        RegisterRequestDto request)
     {
         var email = request.Email.Trim();
         var existingUser = await _userRepository.FindByEmailAsync(email);
@@ -56,7 +56,7 @@ public class AuthenticationService : IAuthenticationService
 
         if (!identityResult.Succeeded)
         {
-            return new AuthenticationResult
+            return new AuthenticationResultDto
             {
                 Succeeded = false,
                 Errors = identityResult.Errors
@@ -66,7 +66,7 @@ public class AuthenticationService : IAuthenticationService
 
         await SendConfirmationEmailAsync(user);
 
-        return new AuthenticationResult
+        return new AuthenticationResultDto
         {
             Succeeded = true,
             Message = "Registration successful. Please confirm your email address.",
@@ -76,8 +76,8 @@ public class AuthenticationService : IAuthenticationService
         };
     }
 
-    public async Task<AuthenticationResult> LoginAsync(
-        LoginRequest request)
+    public async Task<AuthenticationResultDto> LoginAsync(
+        LoginRequestDto request)
     {
         var email = request.Email.Trim();
         var user = await _userRepository.FindByEmailAsync(email);
@@ -107,8 +107,8 @@ public class AuthenticationService : IAuthenticationService
         return CreateSuccessResult(user, roles);
     }
 
-    public async Task<AuthenticationResult> ConfirmEmailAsync(
-        ConfirmEmailRequest request)
+    public async Task<AuthenticationResultDto> ConfirmEmailAsync(
+        ConfirmEmailRequestDto request)
     {
         var user = await _userRepository.FindByIdAsync(request.UserId);
 
@@ -119,7 +119,7 @@ public class AuthenticationService : IAuthenticationService
 
         if (await _userRepository.IsEmailConfirmedAsync(user))
         {
-            return new AuthenticationResult
+            return new AuthenticationResultDto
             {
                 Succeeded = true,
                 Message = "Email address is already confirmed."
@@ -131,20 +131,20 @@ public class AuthenticationService : IAuthenticationService
             request.Token);
 
         return result.Succeeded
-            ? new AuthenticationResult
+            ? new AuthenticationResultDto
             {
                 Succeeded = true,
                 Message = "Email address confirmed successfully."
             }
-            : new AuthenticationResult
+            : new AuthenticationResultDto
             {
                 Succeeded = false,
                 Errors = result.Errors.Select(error => error.Description)
             };
     }
 
-    public async Task<AuthenticationResult> ResendEmailConfirmationAsync(
-        ResendEmailConfirmationRequest request)
+    public async Task<AuthenticationResultDto> ResendEmailConfirmationAsync(
+        ResendEmailConfirmationRequestDto request)
     {
         var user = await _userRepository.FindByEmailAsync(
             request.Email.Trim());
@@ -156,7 +156,7 @@ public class AuthenticationService : IAuthenticationService
             await SendConfirmationEmailAsync(user);
         }
 
-        return new AuthenticationResult
+        return new AuthenticationResultDto
         {
             Succeeded = true,
             Message = "If the account exists and is not confirmed, a confirmation email has been sent."
@@ -189,7 +189,7 @@ public class AuthenticationService : IAuthenticationService
             body);
     }
 
-    private AuthenticationResult CreateSuccessResult(
+    private AuthenticationResultDto CreateSuccessResult(
         ApplicationUser user,
         IList<string> roles)
     {
@@ -222,7 +222,7 @@ public class AuthenticationService : IAuthenticationService
                 signingKey,
                 SecurityAlgorithms.HmacSha256));
 
-        return new AuthenticationResult
+        return new AuthenticationResultDto
         {
             Succeeded = true,
             Message = "Login successful.",
@@ -235,17 +235,122 @@ public class AuthenticationService : IAuthenticationService
         };
     }
 
-    private static AuthenticationResult InvalidCredentials()
+    private static AuthenticationResultDto InvalidCredentials()
     {
         return Failure("Invalid email or password.");
     }
 
-    private static AuthenticationResult Failure(string error)
+    private static AuthenticationResultDto Failure(string error)
     {
-        return new AuthenticationResult
+        return new AuthenticationResultDto
         {
             Succeeded = false,
             Errors = [error]
         };
     }
+
+    public async Task<AuthenticationResultDto> ForgotPasswordAsync(
+        ForgotPasswordRequestDto request)
+    {
+        var email = request.Email.Trim();
+        var user = await _userRepository.FindByEmailAsync(email);
+
+        if (user is not null && user.IsActive)
+        {
+            var token = await _userRepository
+                .GeneratePasswordResetTokenAsync(user);
+
+            var resetLink =
+                $"{_emailSettings.ResetPasswordUrl}" +
+                $"?email={Uri.EscapeDataString(email)}" +
+                $"&token={Uri.EscapeDataString(token)}";
+
+            var safeName = WebUtility.HtmlEncode(user.FullName);
+            var safeLink = WebUtility.HtmlEncode(resetLink);
+
+            var body = $"""
+            <h2>Password reset request</h2>
+            <p>Hello {safeName},</p>
+            <p>Click the link below to reset your TaskFlow password.</p>
+            <p><a href="{safeLink}">Reset password</a></p>
+            <p>If you did not request this change, you can ignore this email.</p>
+            """;
+
+            await _emailService.SendAsync(
+                user.Email!,
+                "Reset your TaskFlow password",
+                body);
+        }
+
+        return new AuthenticationResultDto
+        {
+            Succeeded = true,
+            Message = "If an account exists for this email, a password reset link has been sent."
+        };
+    }
+    public async Task<AuthenticationResultDto> ResetPasswordAsync(
+        ResetPasswordRequestDto request)
+    {
+        var user = await _userRepository.FindByEmailAsync(
+            request.Email.Trim());
+
+        if (user is null || !user.IsActive)
+        {
+            return Failure("Invalid password reset request.");
+        }
+
+        var result = await _userRepository.ResetPasswordAsync(
+            user,
+            request.Token,
+            request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return new AuthenticationResultDto
+            {
+                Succeeded = false,
+                Errors = result.Errors.Select(
+                    error => error.Description)
+            };
+        }
+
+        return new AuthenticationResultDto
+        {
+            Succeeded = true,
+            Message = "Password reset successfully. You can now sign in."
+        };
+    }
+    public async Task<AuthenticationResultDto> ChangePasswordAsync(
+        string userId,
+        ChangePasswordRequestDto request)
+    {
+        var user = await _userRepository.FindByIdAsync(userId);
+
+        if (user is null || !user.IsActive)
+        {
+            return Failure("User account was not found.");
+        }
+
+        var result = await _userRepository.ChangePasswordAsync(
+            user,
+            request.CurrentPassword,
+            request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return new AuthenticationResultDto
+            {
+                Succeeded = false,
+                Errors = result.Errors.Select(
+                    error => error.Description)
+            };
+        }
+
+        return new AuthenticationResultDto
+        {
+            Succeeded = true,
+            Message = "Password changed successfully."
+        };
+    }
+
 }

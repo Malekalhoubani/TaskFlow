@@ -1,18 +1,28 @@
-using TaskFlow.Service.Authentication.Models;
+using TaskFlow.Service.Authentication.DTOs;
 
 namespace TaskFlow.Service.Authentication;
 
 public interface IAuthenticationService
 {
-    Task<AuthenticationResult> RegisterAsync(
-        RegisterRequest request);
+    Task<AuthenticationResultDto> RegisterAsync(
+        RegisterRequestDto request);
 
-    Task<AuthenticationResult> LoginAsync(
-        LoginRequest request);
+    Task<AuthenticationResultDto> LoginAsync(
+        LoginRequestDto request);
 
-    Task<AuthenticationResult> ConfirmEmailAsync(
-        ConfirmEmailRequest request);
+    Task<AuthenticationResultDto> ConfirmEmailAsync(
+        ConfirmEmailRequestDto request);
 
-    Task<AuthenticationResult> ResendEmailConfirmationAsync(
-        ResendEmailConfirmationRequest request);
+    Task<AuthenticationResultDto> ResendEmailConfirmationAsync(
+        ResendEmailConfirmationRequestDto request);
+
+    Task<AuthenticationResultDto> ForgotPasswordAsync(
+        ForgotPasswordRequestDto request);
+
+    Task<AuthenticationResultDto> ResetPasswordAsync(
+        ResetPasswordRequestDto request);
+
+    Task<AuthenticationResultDto> ChangePasswordAsync(
+        string userId,
+        ChangePasswordRequestDto request);
 }
