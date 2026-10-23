@@ -57,5 +57,32 @@ public class UserRepository : IUserRepository
         string token)
     {
         return _userManager.ConfirmEmailAsync(user, token);
+
     }
+    public Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+    {
+        return _userManager.GeneratePasswordResetTokenAsync(user);
+    }
+
+    public Task<IdentityResult> ResetPasswordAsync(ApplicationUser user,
+        string token,
+        string newPassword)
+    {
+        return _userManager.ResetPasswordAsync(
+            user,
+            token,
+            newPassword);
+    }
+
+    public Task<IdentityResult> ChangePasswordAsync(
+        ApplicationUser user,
+        string currentPassword,
+        string newPassword)
+    {
+        return _userManager.ChangePasswordAsync(
+            user,
+            currentPassword,
+            newPassword);
+    }
+
 }

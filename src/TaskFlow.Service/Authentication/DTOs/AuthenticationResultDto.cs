@@ -1,6 +1,6 @@
-namespace TaskFlow.Service.Authentication.Models;
+namespace TaskFlow.Service.Authentication.DTOs;
 
-public class AuthenticationResult
+public class AuthenticationResultDto
 {
     public bool Succeeded { get; set; }
 

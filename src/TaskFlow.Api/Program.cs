@@ -13,6 +13,10 @@ using TaskFlow.Service.Email.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddUserSecrets<Program>(
+    optional: true,
+    reloadOnChange: true);
+
 var connectionString = builder.Configuration
     .GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
@@ -65,6 +69,12 @@ builder.Services.AddOptions<EmailSettings>()
             UriKind.Absolute,
             out _),
         "A valid email confirmation URL is required.")
+    .Validate(
+        settings => Uri.TryCreate(
+            settings.ResetPasswordUrl,
+            UriKind.Absolute,
+            out _),
+        "A valid password reset URL is required.")
     .ValidateOnStart();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

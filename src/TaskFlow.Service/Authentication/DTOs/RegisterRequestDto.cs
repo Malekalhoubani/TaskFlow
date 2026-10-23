@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TaskFlow.Service.Authentication.Models;
+namespace TaskFlow.Service.Authentication.DTOs;
 
-public class RegisterRequest
+public class RegisterRequestDto
 {
     [Required]
     [StringLength(100, MinimumLength = 2)]
